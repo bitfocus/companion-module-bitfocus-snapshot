@@ -1,6 +1,6 @@
 {
 	"name": "companion-module-bitfocus-snapshot",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"api_version": "1.0.0",
 	"description": "Bitfocus Snapshot module for Bitfocus Companion",
 	"keywords": [
