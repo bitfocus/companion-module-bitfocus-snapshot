@@ -4,6 +4,7 @@ import { SomeCompanionConfigField } from '../../../instance_skel_types'
 export interface DeviceConfig {
 	host?: string
 	port?: string
+	secret?: string
 }
 
 export function GetConfigFields(self: InstanceSkel<DeviceConfig>): SomeCompanionConfigField[] {
@@ -23,6 +24,14 @@ export function GetConfigFields(self: InstanceSkel<DeviceConfig>): SomeCompanion
 			width: 4,
 			default: '8050',
 			regex: self.REGEX_PORT,
+		},
+		{
+			type: 'textinput',
+			id: 'secret',
+			label: 'API Secret',
+			width: 12,
+			default: '',
+			regex: self.REGEX_SOMETHING,
 		},
 	]
 }

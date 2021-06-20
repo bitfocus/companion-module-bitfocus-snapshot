@@ -9,26 +9,39 @@ import {
 
 import { GetActionsList, HandleAction } from './actions'
 import { DeviceConfig, GetConfigFields } from './config'
-import { SnapshotConnection } from './connection'
+import { SnapshotConnection, SnapshotState, EmptySnapshotState } from './connection'
 
 class SnapshotInstance extends InstanceSkel<DeviceConfig> {
-	connection: SnapshotConnection | null = null
+	connection: SnapshotConnection | undefined
+	connectionState: SnapshotState = EmptySnapshotState
 
 	constructor(system: CompanionSystem, id: string, config: DeviceConfig) {
 		super(system, id, config)
 	}
 
 	public init(): void {
-		console.log('INIT')
-		if (this.config.host && this.config.port) {
-			console.log('STARTING SNAPSHOT CONNECTION')
-			this.connection = new SnapshotConnection(this.config.host, parseInt(this.config.port))
+		if (this.config.host && this.config.port && this.config.secret) {
+			this.connection = new SnapshotConnection(
+				this.config.host,
+				parseInt(this.config.port),
+				this.config.secret,
+				(newState) => {
+					if (newState.connected) this.status(this.STATUS_OK)
+					else if (!newState.connected) this.status(this.STATUS_ERROR)
+
+					this.connectionState = newState
+					this.updateActions()
+				}
+			)
+			this.status(this.STATUS_WARNING, 'Initializing')
 		}
 
-		this.status(this.STATUS_UNKNOWN)
-
 		this.updateConfig(this.config)
-		this.setActions(GetActionsList(this))
+		this.updateActions()
+	}
+
+	private updateActions() {
+		this.setActions(GetActionsList(this.connectionState))
 	}
 
 	public updateConfig(config: DeviceConfig): void {
@@ -36,14 +49,16 @@ class SnapshotInstance extends InstanceSkel<DeviceConfig> {
 			this.config = config
 			this.status(this.STATUS_ERROR, `Load manager failed`)
 			console.log('init from updateConfig')
-			if (this.connection !== null) this.connection.destroy()
+			if (this.connection) this.connection.destroy()
 			this.init()
 		}
 	}
 
 	public action(action: CompanionActionEvent): void {
-		console.log('action', action)
-		HandleAction(this, action)
+		if (this.connection) HandleAction(this.connection, action)
+		else {
+			this.debug('no connection to handle action', action)
+		}
 	}
 
 	public config_fields(): CompanionConfigField[] {
@@ -52,15 +67,8 @@ class SnapshotInstance extends InstanceSkel<DeviceConfig> {
 	}
 
 	public destroy(): void {
-		try {
-			//
-		} catch (e) {
-			// Ignore
-		}
-
-		if (this.connection !== null) this.connection.destroy()
-
-		this.debug('destroy', this.id)
+		this.connection?.destroy()
+		delete this.connection
 	}
 
 	/**
