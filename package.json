@@ -14,27 +14,24 @@
 	"homepage": "https://github.com/bitfocus/companion-module-bitfocus-snapshot#readme",
 	"main": "dist/index.js",
 	"scripts": {
+		"prepare": "husky install",
 		"build": "npx rimraf dist && npx typescript@~4.2 -p tsconfig.build.json",
 		"build:main": "tsc -p tsconfig.build.json",
 		"build:watch": "tsc -p tsconfig.build.json --watch",
-		"lint": "eslint . --ext .ts --ext .js --ignore-pattern dist",
+		"lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint": "yarn lint:raw .",
 		"lint-fix": "yarn lint --fix",
 		"postinstall": "yarn build"
 	},
 	"author": "William Viker <william@bitfocus.io>",
 	"license": "MIT",
 	"prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
-	"husky": {
-		"hooks": {
-			"pre-commit": "lint-staged"
-		}
-	},
 	"lint-staged": {
 		"*.{css,json,md,scss}": [
 			"prettier --write"
 		],
 		"*.{ts,tsx,js,jsx}": [
-			"yarn lint-fix"
+			"yarn lint:raw --fix"
 		]
 	},
 	"engines": {
@@ -47,8 +44,8 @@
 		"socket.io-client": "^4.5.1"
 	},
 	"devDependencies": {
-		"@sofie-automation/code-standard-preset": "^0.4.1",
-		"typescript": "~4.2"
+		"@sofie-automation/code-standard-preset": "~2.0",
+		"typescript": "~4.5"
 	},
 	"bugs": {
 		"url": "https://github.com/bitfocus/companion-module-bitfocus-snapshot/issues"
